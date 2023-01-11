@@ -30,6 +30,8 @@ type Server struct {
 	AutoStream bool
 	// Enables automatic replay for each new subscriber that connects
 	AutoReplay bool
+	// Controls the write timeout of the underlie HTTP connection
+	WriteTimeout time.Duration
 
 	// Specifies the function to run when client subscribe or un-subscribe
 	OnSubscribe   func(streamID string, sub *Subscriber)

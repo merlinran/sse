@@ -82,6 +82,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
+		if s.WriteTimeout > 0 {
+			rc.SetWriteDeadline(time.Now().Add(s.WriteTimeout))
+		}
+
 		if len(ev.Data) > 0 {
 			fmt.Fprintf(w, "id: %s\n", ev.ID)
 
