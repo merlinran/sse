@@ -66,7 +66,7 @@ func (s *Server) Close() {
 	defer s.mu.Unlock()
 
 	for id := range s.Streams {
-		s.Streams[id].quit <- struct{}{}
+		s.Streams[id].close()
 		delete(s.Streams, id)
 	}
 }
@@ -109,11 +109,14 @@ func (s *Server) StreamExists(id string) bool {
 
 // Publish sends a mesage to every client in a streamID
 func (s *Server) Publish(id string, event *Event) {
+	f := func() {}
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	if s.Streams[id] != nil {
-		s.Streams[id].event <- s.process(event)
+		ch := s.Streams[id].event
+		f = func() { ch <- s.process(event) }
 	}
+	s.mu.Unlock()
+	f()
 }
 
 func (s *Server) getStream(id string) *Stream {

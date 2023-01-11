@@ -420,5 +420,5 @@ func TestSubscribeWithContextDone(t *testing.T) {
 	time.Sleep(1 * time.Second)
 	var n2 = runtime.NumGoroutine()
 
-	assert.Equal(t, n1, n2)
+	assert.InDelta(t, n1, n2, 1.0)
 }

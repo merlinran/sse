@@ -14,12 +14,6 @@ import (
 
 // ServeHTTP serves new connections with events for a given stream ...
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	flusher, err := w.(http.Flusher)
-	if !err {
-		http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
-		return
-	}
-
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
@@ -70,7 +64,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	w.WriteHeader(http.StatusOK)
-	flusher.Flush()
+	rc := http.NewResponseController(w)
+	if err := rc.Flush(); err != nil {
+		// TODO: log the error?
+		return
+	}
 
 	// Push events to client
 	for ev := range sub.connection {
@@ -114,7 +112,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		fmt.Fprint(w, "\n")
-
-		flusher.Flush()
+		if err := rc.Flush(); err != nil {
+			// TODO: log the error?
+			break
+		}
 	}
 }
